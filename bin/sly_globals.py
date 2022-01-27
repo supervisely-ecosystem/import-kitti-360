@@ -1,4 +1,9 @@
 import os
+
+from kitti360scripts.devkits.commons.loadCalibration import loadCalibrationRigid
+
+from bin.transformations import get_camera_to_velodyne_rigid, get_world_to_velodyne_rigid_by_frames
+
 import supervisely
 
 import sly_functions as f
@@ -18,3 +23,17 @@ bboxes_path = '/Users/qanelph/Desktop/work/supervisely/engine/kitti360Scripts/da
 
 pose2world = f.load_pose_to_world_data(
     pose_file_path='/Users/qanelph/Downloads/data_poses/2013_05_28_drive_0000_sync/poses.txt')
+
+
+cam2velodyne = get_camera_to_velodyne_rigid()
+world2velodyne = get_world_to_velodyne_rigid_by_frames()
+
+
+
+## DEBUG
+
+kitti360Path = os.path.join(os.path.dirname(
+        os.path.realpath(__file__)), '..')
+
+fileCameraToVelo = os.path.join(kitti360Path, 'calibration', 'calib_cam_to_velo.txt')
+TrCam0ToVelo = loadCalibrationRigid(fileCameraToVelo)

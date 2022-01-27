@@ -35,14 +35,54 @@ def get_project_meta(labels, geometry=Cuboid3d):
     return supervisely.ProjectMeta(obj_classes=supervisely.ObjClassCollection(obj_classes))
 
 
-def convert_world_coordinates_to_local(obj, current_frame):
 
+def project(points, R, T, inverse=False):
+    assert (points.ndim == R.ndim)
+    assert (T.ndim == R.ndim or T.ndim == (R.ndim - 1))
+    ndim = R.ndim
+    if ndim == 2:
+        R = np.expand_dims(R, 0)
+        T = np.reshape(T, [1, -1, 3])
+        points = np.expand_dims(points, 0)
+    if not inverse:
+        points = np.matmul(R, points.transpose(0, 2, 1)).transpose(0, 2, 1) + T
+    else:
+        points = np.matmul(R.transpose(0, 2, 1), (points - T).transpose(0, 2, 1))
+
+    if ndim == 2:
+        points = points[0]
+
+    return points
+
+
+def convert_world_coordinates_to_velodyne(obj, current_frame):
+    # vertices = obj.vertices
+    # vertices[:, 3] = 1
+    #
+    # # transfrom world points to velodyne coordinate
+    # verticesVel = np.matmul(g.world2velodyne[current_frame], vertices.T).T
+    # return verticesVel[:, :3]
+
+    # R = g.world2velodyne[current_frame][:3, :3]
+    # T = g.world2velodyne[current_frame][:3, 3]
+
+    # R = (g.world2velodyne[current_frame])[:3, :3]
+    # T = (g.world2velodyne[current_frame])[:3, 3]
+
+    # g.pose2world[current_frame] = np.linalg.inv(g.pose2world[current_frame])
     R = g.pose2world[current_frame][:3, :3]
     T = g.pose2world[current_frame][:3, 3]
+    # vert = np.matmul(R, (obj.vertices - T).T).T
+
+    # R = g.world2velodyne[current_frame][:3, :3]
+    # T = g.world2velodyne[current_frame][:3, 3]
+    #
+    # vert = project(obj.vertices, R, T, inverse=True)
+    # return vert
+    # return points_local
+    # return obj.vertices - T
 
     return np.matmul(R, (obj.vertices - T).transpose()).transpose()
-    # return obj.vertices - T
-    # return np.matmul(R, obj.vertices.transpose()).transpose() - T
 
 
 def convert_kitti_cuboid_to_supervisely_geometry(obj, current_frame):
@@ -59,7 +99,7 @@ def convert_kitti_cuboid_to_supervisely_geometry(obj, current_frame):
     geometry = Cuboid3d(position, rotation, dimension)
     geometries.append(geometry)
     """
-    vertices = convert_world_coordinates_to_local(obj, current_frame)
+    vertices = convert_world_coordinates_to_velodyne(obj, current_frame)
 
     mesh = open3d.geometry.TriangleMesh()
     mesh.vertices = open3d.utility.Vector3dVector(vertices)
@@ -90,7 +130,8 @@ def frames_to_figures_dict(annotations_object, project_meta):
             continue  # @TODO dynamic objects
         for obj in v.values():
             pcobj = supervisely.PointcloudObject(project_meta.get_obj_class(obj.name))
-            for frame_index in range(obj.start_frame, obj.end_frame):
+            for frame_index in range(obj.start_frame, 5):
+            # for frame_index in range(obj.start_frame, obj.end_frame):
                 geometry = convert_kitti_cuboid_to_supervisely_geometry(obj, frame_index)
                 frame2figures.setdefault(frame_index, []).append(supervisely.PointcloudFigure(pcobj, geometry))
                 frame2objs.setdefault(frame_index, []).append(pcobj)
@@ -172,7 +213,8 @@ def upload_pcl_project():
 
 def load_pose_to_world_data(pose_file_path):
     pose2world_rows = np.loadtxt(pose_file_path)
-    pose2world_data = np.reshape(pose2world_rows[:, 1:], (-1, 3, 4))
+
+    pose2world_data = np.reshape(pose2world_rows[:, 1:], [-1, 3, 4])
     frames_numbers = list(np.reshape(pose2world_rows[:, :1], (-1)).astype(int))
     pose2world = {}
 
@@ -183,4 +225,7 @@ def load_pose_to_world_data(pose_file_path):
             current_data = pose2world_data[mapped_index]
 
         pose2world[frame_index] = current_data
+
+        if frame_index > 20:  # DEBUG
+            break
     return pose2world

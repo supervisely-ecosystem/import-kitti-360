@@ -29,4 +29,7 @@ if __name__ == '__main__':
         frame_annotations = frames2annotations.get(frame_index)
         pcl_dataset.add_item_file(item_name, item_path, ann=frame_annotations)
 
+        if frame_index == 4:
+            break
+
     f.upload_pcl_project()

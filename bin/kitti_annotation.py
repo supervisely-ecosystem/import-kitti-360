@@ -139,6 +139,7 @@ class KITTI360Bbox3D(KITTI360Object):
         semanticIdKITTI = int(child.find('semanticId').text)
         self.semanticId = kittiId2label[semanticIdKITTI].id
         self.instanceId = int(child.find('instanceId').text)
+        # self.name = str(child.find('label').text)
         self.name = kittiId2label[semanticIdKITTI].name
 
         self.start_frame = int(child.find('start_frame').text)
