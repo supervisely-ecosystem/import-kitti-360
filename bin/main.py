@@ -2,6 +2,8 @@ import glob
 import os
 import shutil
 
+import numpy as np
+
 import supervisely
 
 import sly_globals as g
@@ -24,7 +26,16 @@ if __name__ == '__main__':
         item_name = supervisely.fs.get_file_name(bin_file_path) + ".pcd"
         item_path = pcl_dataset.generate_item_path(item_name)
 
-        f.convert_bin_to_pcd(bin_file_path, item_path)
+        bin_file = f.get_bin_file_by_path(bin_file_path)
+
+        bin_file[:, 3] = 1
+        res = np.matmul(np.linalg.inv(g.TrCam0ToVelo), bin_file.T).T
+        res = np.matmul(g.TrCamToPose, res.T).T
+
+        pointsCam = res[:, :3]
+
+        f.convert_bin_to_pcd(pointsCam, item_path)
+
 
         frame_annotations = frames2annotations.get(frame_index)
         pcl_dataset.add_item_file(item_name, item_path, ann=frame_annotations)

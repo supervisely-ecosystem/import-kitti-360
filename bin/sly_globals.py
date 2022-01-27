@@ -1,6 +1,6 @@
 import os
 
-from kitti360scripts.devkits.commons.loadCalibration import loadCalibrationRigid
+from kitti360scripts.devkits.commons.loadCalibration import loadCalibrationRigid, loadCalibrationCameraToPose
 
 from bin.transformations import get_camera_to_velodyne_rigid, get_world_to_velodyne_rigid_by_frames
 
@@ -37,3 +37,7 @@ kitti360Path = os.path.join(os.path.dirname(
 
 fileCameraToVelo = os.path.join(kitti360Path, 'calibration', 'calib_cam_to_velo.txt')
 TrCam0ToVelo = loadCalibrationRigid(fileCameraToVelo)
+
+
+fileCameraToPose = os.path.join(kitti360Path, 'calibration', 'calib_cam_to_pose.txt')
+TrCamToPose = loadCalibrationCameraToPose(fileCameraToPose)['image_00']

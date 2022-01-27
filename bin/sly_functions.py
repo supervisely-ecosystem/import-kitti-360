@@ -13,15 +13,6 @@ from supervisely.api.module_api import ApiField
 import sly_globals as g
 
 
-def convert_bin_to_pcd(bin_file, save_filepath):
-    bin = np.fromfile(bin_file, dtype=np.float32).reshape(-1, 4)
-    points = bin[:, 0:3]
-    intensity = bin[:, -1]
-    intensity_fake_rgb = np.zeros((intensity.shape[0], 3))
-    intensity_fake_rgb[:, 0] = intensity
-    pc = open3d.geometry.PointCloud(open3d.utility.Vector3dVector(points))
-    pc.colors = open3d.utility.Vector3dVector(intensity_fake_rgb)
-    open3d.io.write_point_cloud(save_filepath, pc)
 
 
 def get_project_meta(labels, geometry=Cuboid3d):
@@ -229,3 +220,28 @@ def load_pose_to_world_data(pose_file_path):
         if frame_index > 20:  # DEBUG
             break
     return pose2world
+
+
+def get_bin_file_by_path(bin_file_path):
+    return np.fromfile(bin_file_path, dtype=np.float32).reshape(-1, 4)
+
+
+def convert_bin_to_pcd(bin, save_filepath):
+    points = bin[:, 0:3]
+    intensity = bin[:, -1]
+    intensity_fake_rgb = np.zeros((intensity.shape[0], 3))
+    intensity_fake_rgb[:, 0] = intensity
+    pc = open3d.geometry.PointCloud(open3d.utility.Vector3dVector(points))
+    pc.colors = open3d.utility.Vector3dVector(intensity_fake_rgb)
+    open3d.io.write_point_cloud(save_filepath, pc)
+
+
+def apply_transformation(transformation, points, inverse=False):
+    R = transformation[:3, :3]
+    T = transformation[:3, 3]
+
+    if not inverse:
+        return np.matmul(R, points.transpose()).transpose() + T
+    else:
+        return np.matmul(R, (points - T).transpose()).transpose()
+
