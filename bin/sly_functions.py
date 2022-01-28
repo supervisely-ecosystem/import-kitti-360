@@ -1,3 +1,4 @@
+import glob
 import os
 import shutil
 from pathlib import Path
@@ -9,14 +10,15 @@ import kitti_annotation
 import open3d
 
 import supervisely
+from supervisely.io.json import dump_json_file
+from supervisely.project.pointcloud_episode_project import upload_pointcloud_episode_project
 from supervisely.geometry.cuboid_3d import Cuboid3d, Vector3d
 from supervisely.pointcloud_annotation.pointcloud_object_collection import PointcloudObjectCollection
 from supervisely.video_annotation.key_id_map import KeyIdMap
 from supervisely.api.module_api import ApiField
 
 import sly_globals as g
-
-
+import sly_progress
 
 
 def get_project_meta(labels, geometry=Cuboid3d):
@@ -28,7 +30,6 @@ def get_project_meta(labels, geometry=Cuboid3d):
             unique_labels.add(obj.name)
     obj_classes = [supervisely.ObjClass(k, geometry) for k in unique_labels]
     return supervisely.ProjectMeta(obj_classes=supervisely.ObjClassCollection(obj_classes))
-
 
 
 def project(points, R, T, inverse=False):
@@ -111,7 +112,7 @@ def frames_to_figures_dict(annotations_object, project_meta):
         for obj in v.values():
             pcobj = supervisely.PointcloudObject(project_meta.get_obj_class(obj.name))
             for frame_index in range(obj.start_frame, 5):
-            # for frame_index in range(obj.start_frame, obj.end_frame):
+                # for frame_index in range(obj.start_frame, obj.end_frame):
                 geometry = convert_kitti_cuboid_to_supervisely_geometry(obj, frame_index)
                 frame2figures.setdefault(frame_index, []).append(supervisely.PointcloudFigure(pcobj, geometry))
                 frame2objs.setdefault(frame_index, []).append(pcobj)
@@ -191,8 +192,6 @@ def upload_pcl_project():
     g.my_app.show_modal_window(f"'{project.name}' project has been successfully imported.")
 
 
-
-
 def get_bin_file_by_path(bin_file_path):
     return np.fromfile(bin_file_path, dtype=np.float32).reshape(-1, 4)
 
@@ -219,44 +218,83 @@ def apply_transformation(transformation, points, inverse=False):
 
 def create_empty_pcl_episodes_project():
     shutil.rmtree(g.project_dir_path, ignore_errors=False)  # DEBUG
-    pcl_project = supervisely.PointcloudProject(g.project_dir_path,
-                                                supervisely.OpenMode.CREATE)
+    pcl_project = supervisely.PointcloudEpisodeProject(g.project_dir_path, supervisely.OpenMode.CREATE)
 
     return pcl_project
 
 
-
 def get_kitti_360_data():
-    sizeb = g.api.file.get_directory_size(g.TEAM_ID, kitti360_remote_dir)
-    cur_files_path = g.kitti360_remote_dir
-    extract_dir = os.path.join(g.storage_dir, cur_files_path.lstrip("/").rstrip("/"))
-    input_dir = extract_dir
-    project_name = Path(cur_files_path).name
+    if not g.api.file.dir_exists(g.TEAM_ID, g.kitti360_remote_dir):
+        raise FileExistsError(f'Directory {g.kitti360_remote_dir} not exists')
 
-    progress_cb = download_progress.get_progress_cb(g.api, task_id,
-                                                    f"Downloading {g.INPUT_DIR.lstrip('/').rstrip('/')}", sizeb,
-                                                    is_size=True)
-    g.api.file.download_directory(g.TEAM_ID, cur_files_path, extract_dir, progress_cb)
-    else:
-        sizeb = g.api.file.get_info_by_path(g.TEAM_ID, input_file).sizeb
-        cur_files_path = input_file
-        archive_path = os.path.join(g.storage_dir, sly.fs.get_file_name_with_ext(cur_files_path))
-        extract_dir = os.path.join(g.storage_dir, sly.fs.get_file_name(cur_files_path))
-        input_dir = extract_dir
-        project_name = sly.fs.get_file_name(input_file)
+    dir_size_in_bytes = g.api.file.get_directory_size(g.TEAM_ID, g.kitti360_remote_dir)
+    progress_cb = sly_progress.get_progress_cb(g.api, g.TASK_ID, f"Downloading {g.kitti360_remote_dir}",
+                                               dir_size_in_bytes, is_size=True)
 
-        progress_cb = download_progress.get_progress_cb(g.api, task_id, f"Downloading {g.INPUT_FILE.lstrip('/')}",
-                                                        sizeb,
-                                                        is_size=True)
-        g.api.file.download(g.TEAM_ID, cur_files_path, archive_path, None, progress_cb)
+    if not os.path.isdir(g.kitti360_local_dir):
+        g.api.file.download_directory(g.TEAM_ID,
+                                      remote_path=g.kitti360_remote_dir,
+                                      local_save_path=g.kitti360_local_dir,
+                                      progress_cb=progress_cb)
 
-        if tarfile.is_tarfile(archive_path):
-            with tarfile.open(archive_path) as archive:
-                archive.extractall(extract_dir)
-        elif zipfile.is_zipfile(archive_path):
-            z_file = zipfile.ZipFile(archive_path)
-            z_file.extractall(extract_dir)
-        else:
-            raise Exception("No such file".format(g.INPUT_FILE))
-        sly.fs.silent_remove(archive_path)
-    return input_dir, project_name
+
+def save_frame_to_pcl_mapping(episode_ds, frame2pcl):
+    frame2pcl_map_path = episode_ds.get_frame_pointcloud_map_path()
+    dump_json_file(frame2pcl, frame2pcl_map_path)
+
+
+def bin_to_pcl(current_bin_path):
+    bin_file = get_bin_file_by_path(current_bin_path)  # read bin
+
+    pathname, extension = os.path.splitext(current_bin_path)
+    pcl_path = f'{pathname}.pcd'
+    filename = os.path.basename(pcl_path)
+
+    convert_bin_to_pcd(bin_file, pcl_path)  # convert to pcd and save
+    return pcl_path, filename
+
+
+def convert_kitti360_to_supervisely_pcl_episodes_project():
+    pcl_episodes_project = create_empty_pcl_episodes_project()
+    pcl_episodes_project.set_meta(supervisely.ProjectMeta())
+
+    seq_to_process = sorted([seq_name for seq_name in os.listdir(g.seq_dir_path)  # filter directories
+                             if os.path.isdir(os.path.join(g.seq_dir_path, seq_name))])
+
+    for current_seq in seq_to_process:  # for each episode
+        frame2pcl = {}
+
+        bins_paths = sorted(glob.glob(os.path.join(g.bins_dir_path.format(current_seq), '*.bin')))  # pointclouds paths
+        pcl_episodes_dataset = pcl_episodes_project.create_dataset(f'{current_seq}')
+        for frame_num, current_bin_path in enumerate(bins_paths, start=1):
+            pcl_path, filename = bin_to_pcl(current_bin_path)  # save pcl to episode
+            pcl_episodes_dataset.add_item_file(filename, pcl_path)
+
+            frame2pcl[frame_num] = filename
+
+        # annotation = supervisely.PointcloudEpisodeAnnotation(frames_count=len(bins_paths), objects=, frames=, tags=None)
+        # pcl_episodes_dataset.set_ann(annotation)
+
+        save_frame_to_pcl_mapping(pcl_episodes_dataset, frame2pcl)  # save frame2pcl mapping
+
+    # frames2annotations, project_meta = get_annotations_in_supervisely_format(
+    #     shapes_path='../data_3d_bboxes/train/2013_05_28_drive_0000_sync.xml')
+    # pcl_project.set_meta(project_meta)
+    #
+    # bin_files_paths = sorted(glob.glob(os.path.join(g.bins_dir_path, '*')))[:4]  # DEBUG
+    #
+    # for frame_index, bin_file_path in enumerate(bin_files_paths):
+    #     item_name = supervisely.fs.get_file_name(bin_file_path) + ".pcd"
+    #     item_path = pcl_dataset.generate_item_path(item_name)
+    #
+    # bin_file = get_bin_file_by_path(bin_file_path)
+    # convert_bin_to_pcd(bin_file, item_path)
+    #
+    #     frame_annotations = frames2annotations.get(frame_index)
+    #     pcl_dataset.add_item_file(item_name, item_path, ann=frame_annotations)
+
+
+def upload_pcl_episodes_project():
+    project_id, project_name = upload_pointcloud_episode_project(g.project_dir_path, g.api, g.WORKSPACE_ID,
+                                                                 project_name=g.project_name, log_progress=True)
+    g.api.task.set_output_project(g.TASK_ID, project_id, project_name)
