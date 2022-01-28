@@ -1,3 +1,7 @@
+import os
+import shutil
+from pathlib import Path
+
 import numpy as np
 from tqdm import tqdm
 
@@ -187,24 +191,6 @@ def upload_pcl_project():
     g.my_app.show_modal_window(f"'{project.name}' project has been successfully imported.")
 
 
-def load_pose_to_world_data(pose_file_path):
-    pose2world_rows = np.loadtxt(pose_file_path)
-
-    pose2world_data = np.reshape(pose2world_rows[:, 1:], [-1, 3, 4])
-    frames_numbers = list(np.reshape(pose2world_rows[:, :1], (-1)).astype(int))
-    pose2world = {}
-
-    current_data = pose2world_data[0]
-    for frame_index in range(1, frames_numbers[-1] + 1):
-        if frame_index in frames_numbers:
-            mapped_index = frames_numbers.index(frame_index)
-            current_data = pose2world_data[mapped_index]
-
-        pose2world[frame_index] = current_data
-
-        if frame_index > 20:  # DEBUG
-            break
-    return pose2world
 
 
 def get_bin_file_by_path(bin_file_path):
@@ -230,3 +216,47 @@ def apply_transformation(transformation, points, inverse=False):
     else:
         return np.matmul(R, (points - T).transpose()).transpose()
 
+
+def create_empty_pcl_episodes_project():
+    shutil.rmtree(g.project_dir_path, ignore_errors=False)  # DEBUG
+    pcl_project = supervisely.PointcloudProject(g.project_dir_path,
+                                                supervisely.OpenMode.CREATE)
+
+    return pcl_project
+
+
+
+def get_kitti_360_data():
+    sizeb = g.api.file.get_directory_size(g.TEAM_ID, kitti360_remote_dir)
+    cur_files_path = g.kitti360_remote_dir
+    extract_dir = os.path.join(g.storage_dir, cur_files_path.lstrip("/").rstrip("/"))
+    input_dir = extract_dir
+    project_name = Path(cur_files_path).name
+
+    progress_cb = download_progress.get_progress_cb(g.api, task_id,
+                                                    f"Downloading {g.INPUT_DIR.lstrip('/').rstrip('/')}", sizeb,
+                                                    is_size=True)
+    g.api.file.download_directory(g.TEAM_ID, cur_files_path, extract_dir, progress_cb)
+    else:
+        sizeb = g.api.file.get_info_by_path(g.TEAM_ID, input_file).sizeb
+        cur_files_path = input_file
+        archive_path = os.path.join(g.storage_dir, sly.fs.get_file_name_with_ext(cur_files_path))
+        extract_dir = os.path.join(g.storage_dir, sly.fs.get_file_name(cur_files_path))
+        input_dir = extract_dir
+        project_name = sly.fs.get_file_name(input_file)
+
+        progress_cb = download_progress.get_progress_cb(g.api, task_id, f"Downloading {g.INPUT_FILE.lstrip('/')}",
+                                                        sizeb,
+                                                        is_size=True)
+        g.api.file.download(g.TEAM_ID, cur_files_path, archive_path, None, progress_cb)
+
+        if tarfile.is_tarfile(archive_path):
+            with tarfile.open(archive_path) as archive:
+                archive.extractall(extract_dir)
+        elif zipfile.is_zipfile(archive_path):
+            z_file = zipfile.ZipFile(archive_path)
+            z_file.extractall(extract_dir)
+        else:
+            raise Exception("No such file".format(g.INPUT_FILE))
+        sly.fs.silent_remove(archive_path)
+    return input_dir, project_name
