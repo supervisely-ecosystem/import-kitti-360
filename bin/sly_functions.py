@@ -106,33 +106,39 @@ def frames_to_figures_dict(annotations_object, project_meta):
     frame2figures = {}
     frame2objs = {}
 
+    ann_objects = set()
+    ann_figures = list()
+
     for globalId, v in annotations_object.objects.items():
         if len(v) > 1:
             continue  # @TODO dynamic objects
         for obj in v.values():
             pcobj = supervisely.PointcloudObject(project_meta.get_obj_class(obj.name))
+            ann_objects.add(pcobj)
+
             for frame_index in range(obj.start_frame, 5):
                 # for frame_index in range(obj.start_frame, obj.end_frame):
                 geometry = convert_kitti_cuboid_to_supervisely_geometry(obj, frame_index)
-                frame2figures.setdefault(frame_index, []).append(supervisely.PointcloudFigure(pcobj, geometry))
-                frame2objs.setdefault(frame_index, []).append(pcobj)
+                frame2figures.setdefault(frame_index, []).append(supervisely.PointcloudFigure(pcobj, geometry,
+                                                                                              frame_index=frame_index))
+                # frame2objs.setdefault(frame_index, []).append(pcobj)
 
-    return frame2figures, frame2objs
+    return frame2figures, frame2objs, ann_objects
 
 
 def convert_kitty_to_supervisely(annotations_object, project_meta):
-    frames2figures, frames2objs = frames_to_figures_dict(annotations_object, project_meta)
+    frames2figures, frames2objs, ann_objects = frames_to_figures_dict(annotations_object, project_meta)
 
-    frames2annotations = {}
+    frames_list = []
 
     for frame_index in frames2figures.keys():
         figures_on_frame = frames2figures.get(frame_index, [])
-        objs_on_frame = frames2objs.get(frame_index, [])
+        frames_list.append(supervisely.Frame(frame_index, figures_on_frame))
 
-        frames2annotations[frame_index] = supervisely.PointcloudAnnotation(PointcloudObjectCollection(objs_on_frame),
-                                                                           figures_on_frame)
-
-    return frames2annotations
+    frames_collection = supervisely.FrameCollection(frames_list)
+    return supervisely.PointcloudEpisodeAnnotation(frames_count=len(frames_list),
+                                                   objects=PointcloudObjectCollection(ann_objects),
+                                                   frames=frames_collection)
 
 
 def get_annotations_in_supervisely_format(shapes_path):
@@ -254,6 +260,25 @@ def bin_to_pcl(current_bin_path):
     return pcl_path, filename
 
 
+def update_project_meta(pcl_episodes_project, project_meta):
+    old_meta = pcl_episodes_project.meta
+    updated_meta = old_meta.merge(project_meta)
+    pcl_episodes_project.set_meta(updated_meta)
+
+
+def process_annotations(seq_to_process, pcl_episodes_project, pcl_episodes_dataset):
+    path_to_kitti_annotations = os.path.join(g.bboxes_path, f'{seq_to_process}.xml')
+    if os.path.isfile(path_to_kitti_annotations):
+        episode_annotations, project_meta = get_annotations_in_supervisely_format(
+            shapes_path=path_to_kitti_annotations)
+
+        pcl_episodes_dataset.set_ann(episode_annotations)
+        update_project_meta(pcl_episodes_project, project_meta)
+
+    else:
+        supervisely.logger.info(f'Annotations for {seq_to_process} not found;')
+
+
 def convert_kitti360_to_supervisely_pcl_episodes_project():
     pcl_episodes_project = create_empty_pcl_episodes_project()
     pcl_episodes_project.set_meta(supervisely.ProjectMeta())
@@ -266,20 +291,18 @@ def convert_kitti360_to_supervisely_pcl_episodes_project():
 
         bins_paths = sorted(glob.glob(os.path.join(g.bins_dir_path.format(current_seq), '*.bin')))  # pointclouds paths
         pcl_episodes_dataset = pcl_episodes_project.create_dataset(f'{current_seq}')
-        for frame_num, current_bin_path in enumerate(bins_paths, start=1):
+        for frame_num, current_bin_path in enumerate(bins_paths, start=0):
             pcl_path, filename = bin_to_pcl(current_bin_path)  # save pcl to episode
             pcl_episodes_dataset.add_item_file(filename, pcl_path)
 
             frame2pcl[frame_num] = filename
 
-        # annotation = supervisely.PointcloudEpisodeAnnotation(frames_count=len(bins_paths), objects=, frames=, tags=None)
-        # pcl_episodes_dataset.set_ann(annotation)
-
+        process_annotations(current_seq, pcl_episodes_project, pcl_episodes_dataset)
         save_frame_to_pcl_mapping(pcl_episodes_dataset, frame2pcl)  # save frame2pcl mapping
 
-    # frames2annotations, project_meta = get_annotations_in_supervisely_format(
-    #     shapes_path='../data_3d_bboxes/train/2013_05_28_drive_0000_sync.xml')
-    # pcl_project.set_meta(project_meta)
+    # PointcloudObjectCollection()
+    # annotation = supervisely.PointcloudEpisodeAnnotation(frames_count=len(bins_paths), objects=, frames=, tags=None)
+
     #
     # bin_files_paths = sorted(glob.glob(os.path.join(g.bins_dir_path, '*')))[:4]  # DEBUG
     #
