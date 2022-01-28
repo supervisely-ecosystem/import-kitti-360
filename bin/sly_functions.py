@@ -47,33 +47,17 @@ def project(points, R, T, inverse=False):
 
 
 def convert_world_coordinates_to_velodyne(obj, current_frame):
-    # vertices = obj.vertices
-    # vertices[:, 3] = 1
+    R = g.world2cam[current_frame][:3, :3]
+    T = g.world2cam[current_frame][:3, 3]
+
+    # vert = np.matmul(R, (obj.vertices - T).T).T  # 1 — inv cam2world
+
+    # R = g.cam2velodyne['image_00'][:3, :3]
+    # T = g.cam2velodyne['image_00'][:3, 3]
     #
-    # # transfrom world points to velodyne coordinate
-    # verticesVel = np.matmul(g.world2velodyne[current_frame], vertices.T).T
-    # return verticesVel[:, :3]
+    # vert = np.matmul(R, vert.T).T + T  # 2 — cam2velodyne
 
-    # R = g.world2velodyne[current_frame][:3, :3]
-    # T = g.world2velodyne[current_frame][:3, 3]
-
-    # R = (g.world2velodyne[current_frame])[:3, :3]
-    # T = (g.world2velodyne[current_frame])[:3, 3]
-
-    # g.pose2world[current_frame] = np.linalg.inv(g.pose2world[current_frame])
-    R = g.pose2world[current_frame][:3, :3]
-    T = g.pose2world[current_frame][:3, 3]
-    # vert = np.matmul(R, (obj.vertices - T).T).T
-
-    # R = g.world2velodyne[current_frame][:3, :3]
-    # T = g.world2velodyne[current_frame][:3, 3]
-    #
-    # vert = project(obj.vertices, R, T, inverse=True)
-    # return vert
-    # return points_local
-    # return obj.vertices - T
-
-    return np.matmul(R, (obj.vertices - T).transpose()).transpose()
+    return obj.vertices - T
 
 
 def convert_kitti_cuboid_to_supervisely_geometry(obj, current_frame):
@@ -90,7 +74,8 @@ def convert_kitti_cuboid_to_supervisely_geometry(obj, current_frame):
     geometry = Cuboid3d(position, rotation, dimension)
     geometries.append(geometry)
     """
-    vertices = convert_world_coordinates_to_velodyne(obj, current_frame)
+    # vertices = convert_world_coordinates_to_velodyne(obj, current_frame)
+    vertices = obj.vertices
 
     mesh = open3d.geometry.TriangleMesh()
     mesh.vertices = open3d.utility.Vector3dVector(vertices)

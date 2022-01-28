@@ -10,8 +10,7 @@ import sly_globals as g
 import sly_functions as f
 
 if __name__ == '__main__':
-    shutil.rmtree(g.project_dir_path, ignore_errors=True)  # for DEBUG
-
+    shutil.rmtree(g.project_dir_path, ignore_errors=False)  # for DEBUG
     pcl_project = supervisely.PointcloudProject(g.project_dir_path,
                                                 supervisely.OpenMode.CREATE)
     pcl_dataset = pcl_project.create_dataset('main')
@@ -27,15 +26,7 @@ if __name__ == '__main__':
         item_path = pcl_dataset.generate_item_path(item_name)
 
         bin_file = f.get_bin_file_by_path(bin_file_path)
-
-        bin_file[:, 3] = 1
-        res = np.matmul(np.linalg.inv(g.TrCam0ToVelo), bin_file.T).T
-        res = np.matmul(g.TrCamToPose, res.T).T
-
-        pointsCam = res[:, :3]
-
-        f.convert_bin_to_pcd(pointsCam, item_path)
-
+        f.convert_bin_to_pcd(bin_file, item_path)
 
         frame_annotations = frames2annotations.get(frame_index)
         pcl_dataset.add_item_file(item_name, item_path, ann=frame_annotations)

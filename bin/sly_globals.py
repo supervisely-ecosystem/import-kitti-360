@@ -26,7 +26,7 @@ pose2world = f.load_pose_to_world_data(
 
 
 cam2velodyne = get_camera_to_velodyne_rigid()
-world2velodyne = get_world_to_velodyne_rigid_by_frames()
+world2cam = get_world_to_velodyne_rigid_by_frames()
 
 
 

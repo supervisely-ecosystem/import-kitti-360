@@ -21,3 +21,7 @@ import numpy as np
 # R = pose2world[0][:3, :3]
 # T = pose2world[0][:3, 3]
 # print()
+
+
+test = 'test_string'.split(';')
+print(test)
