@@ -131,14 +131,16 @@ def convert_kitti_cuboid_to_supervisely_geometry(obj, current_frame):
     mesh = get_mesh_from_object(obj)
     min_bound, max_bound = mesh.get_min_bound(), mesh.get_max_bound()  # x, y, z
 
+    vertices_centered = mesh.vertices - mesh.get_center()
+
     vertices = obj.vertices
 
     p0 = vertices[1]
     vertices_0 = vertices - p0
 
     p0 = vertices_0[1]
-    p1 = vertices_0[3]  # y-aligned point
-    p2 = vertices_0[4]  # x-aligned point
+    p1 = vertices_0[4]  # x-aligned point
+    p2 = vertices_0[3]  # y-aligned point
     p3 = vertices_0[0]  # z-aligned point
 
     a1 = p1 - p0
@@ -150,10 +152,25 @@ def convert_kitti_cuboid_to_supervisely_geometry(obj, current_frame):
     b3 = (0, 0, 1)
     # moving to angle finder
 
-
+    alpha1 = np.arccos(a1[0] / np.dot(np.absolute(a1), np.absolute(b1)))  # x-axis
+    alpha2 = np.arccos(a1[1] / np.dot(np.absolute(a1), np.absolute(b1)))  # x-axis
+    alpha3 = np.arccos(a1[2] / np.dot(np.absolute(a1), np.absolute(b1)))  # x-axis
+    beta1 = np.arccos(a2[0] / np.dot(np.absolute(a2), np.absolute(b2)))  # y-axis
+    beta2 = np.arccos(a2[1] / np.dot(np.absolute(a2), np.absolute(b2)))  # y-axis
+    beta3 = np.arccos(a2[2] / np.dot(np.absolute(a2), np.absolute(b2)))  # y-axis
+    gamma1 = np.arccos(a3[0] / np.dot(np.absolute(a3), np.absolute(b3)))  # z-axis
+    gamma2 = np.arccos(a3[1] / np.dot(np.absolute(a3), np.absolute(b3)))  # z-axis
+    gamma3 = np.arccos(a3[2] / np.dot(np.absolute(a3), np.absolute(b3)))  # z-axis
 
     get_connected_points(0, obj.faces)
+    from scipy.ndimage.interpolation import rotate
 
+    rotated_vert = rotate(vertices_centered, angle=math.degrees(gamma3), axes=(0, 1))
+
+    mesh.vertices = open3d.utility.Vector3dVector(rotated_vert)
+
+    visualize([mesh])
+    print()
 
 
     # center = mesh.get_center()
