@@ -45,6 +45,8 @@ from kitti360scripts.helpers.annotation  import Annotation3D, Annotation3DPly, g
 from kitti360scripts.helpers.project     import Camera
 from kitti360scripts.helpers.labels      import name2label, id2label, kittiId2label
 
+import sly_globals as g
+
 
 # the main class that parse fused point clouds
 class Kitti360Viewer3D(object):
@@ -231,11 +233,28 @@ class Kitti360Viewer3D(object):
             if len(v)>1:
                 continue
             for obj in v.values():
+                vertices = obj.vertices
+                ## here is translate
+
+                # Tr(world -> cam)
+                R = g.world2cam[1][:3, :3]  # maybe inv, not transpose
+                T = g.world2cam[1][:3, 3]
+
+                vertices = np.matmul(R.transpose(), (vertices - T).transpose()).transpose()
+
+                # Tr(cam -> velo)
+                R = g.TrCam0ToVelo[:3, :3]
+                T = g.TrCam0ToVelo[:3, 3]
+
+                vertices = np.matmul(R, vertices.transpose()).transpose() + T
+
+                print()
+
                 lines=np.array(obj.lines)
-                vertices=obj.vertices
                 faces=obj.faces
                 mesh = open3d.geometry.TriangleMesh()
-                mesh.vertices = open3d.utility.Vector3dVector(obj.vertices)
+                # mesh.vertices = open3d.utility.Vector3dVector(obj.vertices)
+                mesh.vertices = open3d.utility.Vector3dVector(vertices)
                 mesh.triangles = open3d.utility.Vector3iVector(obj.faces)
                 color = self.assignColor(globalId, 'semantic')
                 semanticId, instanceId = global2local(globalId)

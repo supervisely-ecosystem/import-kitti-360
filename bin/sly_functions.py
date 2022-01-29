@@ -1,4 +1,5 @@
 import glob
+import math
 import os
 import shutil
 from pathlib import Path
@@ -64,6 +65,52 @@ def convert_world_coordinates_to_velodyne(obj, current_frame):
 
     return obj.vertices - T
 
+def visualize(geometries):
+    viewer = open3d.visualization.Visualizer()
+    viewer.create_window()
+    for geometry in geometries:
+        viewer.add_geometry(geometry)
+    opt = viewer.get_render_option()
+    opt.show_coordinate_frame = True
+    opt.background_color = np.asarray([0.5, 0.5, 0.5])
+    viewer.run()
+    viewer.destroy_window()
+
+
+
+def world_to_velo_transformation(vertices, frame_index):
+    # Tr(world -> cam)
+    R = g.world2cam[frame_index][:3, :3]  # maybe inv, not transpose
+    T = g.world2cam[frame_index][:3, 3]
+
+    vertices = np.matmul(R.transpose(), (vertices - T).transpose()).transpose()
+
+    # Tr(cam -> velo)
+    R = g.TrCam0ToVelo[:3, :3]
+    T = g.TrCam0ToVelo[:3, 3]
+
+    vertices = np.matmul(R, vertices.transpose()).transpose() + T
+    return vertices
+
+
+def get_mesh_from_object(obj):
+    mesh = open3d.geometry.TriangleMesh()
+    mesh.vertices = open3d.utility.Vector3dVector(obj.vertices)
+    mesh.triangles = open3d.utility.Vector3iVector(obj.faces)
+
+    return mesh
+
+
+def get_connected_points(point_index, faces):
+    points = []
+    for face in faces:
+        if point_index in face:
+            points.extend(face)
+
+    return set(points)
+
+    print()
+
 
 def convert_kitti_cuboid_to_supervisely_geometry(obj, current_frame):
     """
@@ -80,22 +127,69 @@ def convert_kitti_cuboid_to_supervisely_geometry(obj, current_frame):
     geometries.append(geometry)
     """
     # vertices = convert_world_coordinates_to_velodyne(obj, current_frame)
-    vertices = obj.vertices
-
-    mesh = open3d.geometry.TriangleMesh()
-    mesh.vertices = open3d.utility.Vector3dVector(vertices)
-    mesh.triangles = open3d.utility.Vector3iVector(obj.faces)
-    # mesh.compute_vertex_normals() #?
-
+    obj.vertices = world_to_velo_transformation(obj.vertices, current_frame)
+    mesh = get_mesh_from_object(obj)
     min_bound, max_bound = mesh.get_min_bound(), mesh.get_max_bound()  # x, y, z
 
-    x, y, z = min_bound[0], min_bound[1], min_bound[2]  # (max_bound[2] + min_bound[2]) / 2
+    vertices = obj.vertices
 
-    position = Vector3d(x, y, z)
-    rotation = Vector3d(0, 0, 0)
+    p0 = vertices[1]
+    vertices_0 = vertices - p0
 
-    w, h, l = max_bound[0] - min_bound[0], max_bound[1] - min_bound[1], max_bound[2] - min_bound[2]
-    dimension = Vector3d(w, h, l)
+    p0 = vertices_0[1]
+    p1 = vertices_0[3]  # y-aligned point
+    p2 = vertices_0[4]  # x-aligned point
+    p3 = vertices_0[0]  # z-aligned point
+
+    a1 = p1 - p0
+    a2 = p2 - p0
+    a3 = p3 - p0
+
+    b1 = (1, 0, 0)
+    b2 = (0, 1, 0)
+    b3 = (0, 0, 1)
+    # moving to angle finder
+
+
+
+    get_connected_points(0, obj.faces)
+
+
+
+    # center = mesh.get_center()
+
+    # zero_vertices = mesh.vertices - min_bound
+    # center_vertices = mesh.vertices - center
+
+
+
+    # vector_a = center_vertices[5] - center_vertices[0]
+
+    # a_proection = math.sqrt(sum([curr_coord ** 2 for curr_coord in vector_a]))
+    # np.dot()
+
+
+    # print()
+    # vertices_final = obj.vertices
+    #
+
+    # # mesh.compute_vertex_normals() #?
+    #
+    # min_bound, max_bound = mesh.get_min_bound(), mesh.get_max_bound()  # x, y, z
+    #
+    # x, y, z = min_bound[0], min_bound[1], min_bound[2]  # (max_bound[2] + min_bound[2]) / 2
+    #
+    # position = Vector3d(x, y, z)
+    # rotation = Vector3d(0, 0, -yaw)
+    #
+    # mesh_zero = open3d.geometry.TriangleMesh()
+    # mesh_zero.vertices = open3d.utility.Vector3dVector(
+    #     np.matmul(obj.R.transpose(), (obj.vertices - obj.T).transpose()).transpose())
+    # mesh.triangles = open3d.utility.Vector3iVector(obj.faces)
+    # min_bound, max_bound = mesh_zero.get_min_bound(), mesh_zero.get_max_bound()  # x, y, z
+    #
+    # w, h, l = max_bound[0] - min_bound[0], max_bound[1] - min_bound[1], max_bound[2] - min_bound[2]
+    # dimension = Vector3d(w/10, h/10, l/10)
 
     # open3d.visualization.draw_geometries([mesh])
 
@@ -223,7 +317,8 @@ def apply_transformation(transformation, points, inverse=False):
 
 
 def create_empty_pcl_episodes_project():
-    shutil.rmtree(g.project_dir_path, ignore_errors=False)  # DEBUG
+    if os.path.isdir(g.project_dir_path):  # DEBUG
+        shutil.rmtree(g.project_dir_path, ignore_errors=False)
     pcl_project = supervisely.PointcloudEpisodeProject(g.project_dir_path, supervisely.OpenMode.CREATE)
 
     return pcl_project
