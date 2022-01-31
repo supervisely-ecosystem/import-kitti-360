@@ -77,7 +77,6 @@ def visualize(geometries):
     viewer.destroy_window()
 
 
-
 def world_to_velo_transformation(vertices, frame_index):
     # Tr(world -> cam)
     R = g.world2cam[frame_index][:3, :3]  # maybe inv, not transpose
@@ -91,6 +90,22 @@ def world_to_velo_transformation(vertices, frame_index):
 
     vertices = np.matmul(R, vertices.transpose()).transpose() + T
     return vertices
+
+
+def get_rotation_angles(obj, frame_index):
+    from scipy.spatial.transform import Rotation
+
+    R1 = obj.R
+    R2 = g.world2cam[frame_index][:3, :3].transpose()
+    R3 = g.TrCam0ToVelo[:3, :3]
+
+    applied_rotations = R1 @ R2 @ R3
+    rotation_1 = Rotation.from_matrix(R1).as_euler('xyz', degrees=True)
+    rotation_2 = Rotation.from_matrix(R2).as_euler('xyz', degrees=True)
+    rotation_3 = Rotation.from_matrix(R3).as_euler('xyz', degrees=True)
+    rotation_m = Rotation.from_matrix(applied_rotations).as_euler('XYZ', degrees=False)
+
+    return rotation_m
 
 
 def get_mesh_from_object(obj):
@@ -108,8 +123,6 @@ def get_connected_points(point_index, faces):
             points.extend(face)
 
     return set(points)
-
-    print()
 
 
 def convert_kitti_cuboid_to_supervisely_geometry(obj, current_frame):
@@ -153,24 +166,25 @@ def convert_kitti_cuboid_to_supervisely_geometry(obj, current_frame):
     # moving to angle finder
 
     alpha1 = np.arccos(a1[0] / np.dot(np.absolute(a1), np.absolute(b1)))  # x-axis
-    alpha2 = np.arccos(a1[1] / np.dot(np.absolute(a1), np.absolute(b1)))  # x-axis
+    alpha2 = np.arccos(a1[1] / np.dot(np.absolute(a1), np.absolute(b1)))  # ! x-axis
     alpha3 = np.arccos(a1[2] / np.dot(np.absolute(a1), np.absolute(b1)))  # x-axis
-    beta1 = np.arccos(a2[0] / np.dot(np.absolute(a2), np.absolute(b2)))  # y-axis
+    beta1 = np.arccos(a2[0] / np.dot(np.absolute(a2), np.absolute(b2)))  # ! y-axis
     beta2 = np.arccos(a2[1] / np.dot(np.absolute(a2), np.absolute(b2)))  # y-axis
     beta3 = np.arccos(a2[2] / np.dot(np.absolute(a2), np.absolute(b2)))  # y-axis
-    gamma1 = np.arccos(a3[0] / np.dot(np.absolute(a3), np.absolute(b3)))  # z-axis
+    gamma1 = np.arccos(a3[0] / np.dot(np.absolute(a3), np.absolute(b3)))  # ! z-axis
     gamma2 = np.arccos(a3[1] / np.dot(np.absolute(a3), np.absolute(b3)))  # z-axis
     gamma3 = np.arccos(a3[2] / np.dot(np.absolute(a3), np.absolute(b3)))  # z-axis
 
     get_connected_points(0, obj.faces)
-    from scipy.ndimage.interpolation import rotate
+    # from scipy.ndimage.interpolation import rotate
 
-    rotated_vert = rotate(vertices_centered, angle=math.degrees(gamma3), axes=(0, 1))
+    # rotated_vert2 = rotate(vertices_centered, angle=math.degrees(gamma2), axes=(0, 1))
+    # rotated_vert3 = rotate(vertices_centered, angle=math.degrees(gamma3), axes=(0, 1))
 
-    mesh.vertices = open3d.utility.Vector3dVector(rotated_vert)
+    # mesh.vertices = open3d.utility.Vector3dVector(rotated_vert)
 
-    visualize([mesh])
-    print()
+    # visualize([mesh])
+    # print()
 
 
     # center = mesh.get_center()
@@ -194,21 +208,31 @@ def convert_kitti_cuboid_to_supervisely_geometry(obj, current_frame):
     #
     # min_bound, max_bound = mesh.get_min_bound(), mesh.get_max_bound()  # x, y, z
     #
-    # x, y, z = min_bound[0], min_bound[1], min_bound[2]  # (max_bound[2] + min_bound[2]) / 2
+    # x, y, z = obj.vertices[1][0], obj.vertices[1][1], obj.vertices[1][2] + vertices_0[0][2] / 2
+    vert_center = mesh.get_center()
+    x, y, z = vert_center[0], vert_center[1], vert_center[2]
+    position = Vector3d(x, y, z)
+
+    # rotation_angles = get_rotation_angles(obj, current_frame)
+    # r_x, r_y, r_z = rotation_angles[0], rotation_angles[1], rotation_angles[2]
+
+    rotation = Vector3d(0, 0, 0)
     #
-    # position = Vector3d(x, y, z)
-    # rotation = Vector3d(0, 0, -yaw)
-    #
+
+    if 1.02 < x < 1.04 and 4.03 < y < 4.05 and -0.88 < z < -0.86:
+        print()
+
     # mesh_zero = open3d.geometry.TriangleMesh()
     # mesh_zero.vertices = open3d.utility.Vector3dVector(
     #     np.matmul(obj.R.transpose(), (obj.vertices - obj.T).transpose()).transpose())
     # mesh.triangles = open3d.utility.Vector3iVector(obj.faces)
     # min_bound, max_bound = mesh_zero.get_min_bound(), mesh_zero.get_max_bound()  # x, y, z
     #
-    # w, h, l = max_bound[0] - min_bound[0], max_bound[1] - min_bound[1], max_bound[2] - min_bound[2]
-    # dimension = Vector3d(w/10, h/10, l/10)
+    w, h, l = math.sqrt(a1[0] ** 2 + a1[1] ** 2 + a1[2] ** 2), \
+              math.sqrt(a2[0] ** 2 + a2[1] ** 2 + a2[2] ** 2), \
+              math.sqrt(a3[0] ** 2 + a3[1] ** 2 + a3[2] ** 2)
 
-    # open3d.visualization.draw_geometries([mesh])
+    dimension = Vector3d(w, h, l)
 
     return Cuboid3d(position, rotation, dimension)
 
@@ -408,6 +432,10 @@ def convert_kitti360_to_supervisely_pcl_episodes_project():
             pcl_episodes_dataset.add_item_file(filename, pcl_path)
 
             frame2pcl[frame_num] = filename
+
+            if frame_num == 5:
+                break
+
 
         process_annotations(current_seq, pcl_episodes_project, pcl_episodes_dataset)
         save_frame_to_pcl_mapping(pcl_episodes_dataset, frame2pcl)  # save frame2pcl mapping
