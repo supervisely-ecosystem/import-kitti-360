@@ -18,10 +18,9 @@ from pointcloud_episode import upload_pcl_episodes_project
 def get_project_meta(labels, geometry=Cuboid3d):
     unique_labels = set()
     for globalId, v in labels.objects.items():
-        if len(v) > 1:
-            continue  # @TODO dynamic objects
-        for obj in v.values():
-            unique_labels.add(obj.name)
+        if len(v) > 0:
+            unique_labels.add(list(v.values())[0].name)
+
     obj_classes = [supervisely.ObjClass(k, geometry) for k in unique_labels]
     return supervisely.ProjectMeta(obj_classes=supervisely.ObjClassCollection(obj_classes))
 
@@ -31,15 +30,23 @@ def frames_to_figures_dict(annotations_object, project_meta):
     ann_objects = set()
 
     for globalId, v in annotations_object.objects.items():
-        if len(v) > 1:
-            continue  # @TODO dynamic objects
-        for obj in v.values():
-            pcobj = supervisely.PointcloudObject(project_meta.get_obj_class(obj.name))
+        if len(v) > 0:
+            first_object = list(v.values())[0]
+            pcobj = supervisely.PointcloudObject(project_meta.get_obj_class(first_object.name))
             ann_objects.add(pcobj)
 
-            # for frame_index in range(obj.start_frame, 5):
-            for frame_index in range(obj.start_frame, obj.end_frame):
-                geometry = kitti_360_helpers.convert_kitti_cuboid_to_supervisely_geometry(obj, frame_index)
+            if len(v) > 1:  # dynamic objects {frame: annotation}
+                start_frame, end_frame = sorted(list(v.keys()))[0], sorted(list(v.keys()))[-1]
+            else:  # static objects {-placeholder: annotation}
+                start_frame, end_frame = first_object.start_frame, first_object.end_frame
+
+            actual_object = v[start_frame] if len(v) > 1 else first_object  # get first dynamic / static object
+            for frame_index in range(start_frame, end_frame):
+                if v.get(frame_index, None) is not None:
+                    actual_object = v.get(frame_index)
+
+                geometry = kitti_360_helpers.convert_kitti_cuboid_to_supervisely_geometry(actual_object,
+                                                                                          frame_index)
                 frame2figures.setdefault(frame_index, []).append(supervisely.PointcloudFigure(pcobj, geometry,
                                                                                               frame_index=frame_index))
     return frame2figures, ann_objects
