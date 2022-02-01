@@ -135,7 +135,7 @@ class KITTI360Bbox3D(KITTI360Object):
         self.R = R
         self.T = T
 
-        self.original_vertices = self.parseOpencvMatrix(child.find('vertices'))
+        self.transform = transform
 
     def parseBbox(self, child):
         semanticIdKITTI = int(child.find('semanticId').text)
