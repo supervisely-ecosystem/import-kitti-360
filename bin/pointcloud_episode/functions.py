@@ -52,3 +52,40 @@ def create_empty_pcl_episodes_project():
     pcl_project = supervisely.PointcloudEpisodeProject(g.project_dir_path, supervisely.OpenMode.CREATE)
 
     return pcl_project
+
+
+def get_related_images_dir_path_by_dataset(pcl_episodes_dataset, pointcloud_name):
+    related_images_path = pcl_episodes_dataset.get_related_images_path(pointcloud_name)
+    os.makedirs(related_images_path, exist_ok=True)
+
+    return related_images_path
+
+
+def add_photo_context(pcl_episodes_dataset, pcl_name, image_path, img_info):
+    """
+    @TODO move to SDK
+    """
+    related_images_dir_path = get_related_images_dir_path_by_dataset(pcl_episodes_dataset, pcl_name)
+    os.makedirs(related_images_dir_path, exist_ok=True)
+
+    sly_path_img = os.path.join(related_images_dir_path, pcl_name.replace('.pcd', '.png'))
+
+    shutil.copy(src=image_path, dst=sly_path_img)  # copy image to project
+    if img_info is not None:
+        supervisely.json.dump_json_file(img_info, sly_path_img + '.json')  # add img_info to project
+
+
+def get_image_info(image_name, camera_num=0):
+    intrinsic_matrix = g.intrinsic_calibrations[f'P_rect_0{camera_num}'][:3, :3]  # now only for zero_cam
+    extrinsic_matrix = np.linalg.inv(g.cam2velo)[:3, :4]
+
+    return {
+        "name": image_name,
+        "meta": {
+            "deviceId": f'P_rect_0{camera_num}',
+            "sensorsData": {
+                "extrinsicMatrix": list(extrinsic_matrix.flatten().astype(float)),
+                "intrinsicMatrix": list(intrinsic_matrix.flatten().astype(float))
+            }
+        }
+    }

@@ -61,9 +61,6 @@ def convert_kitty_to_supervisely(annotations_object, project_meta):
         figures_on_frame = frames2figures.get(frame_index, [])
         frames_list.append(supervisely.Frame(frame_index, figures_on_frame))
 
-        if frame_index == 20:  # DEBUG
-            break
-
     frames_collection = supervisely.FrameCollection(frames_list)
     return supervisely.PointcloudEpisodeAnnotation(frames_count=len(frames_list),
                                                    objects=PointcloudObjectCollection(ann_objects),
@@ -118,56 +115,15 @@ def convert_kitti360_to_supervisely_pcl_episodes_project():
             img_filename = pcl_filename.replace('.pcd', '.png')
             image_path = os.path.join(g.photocontext_path.format(current_seq), img_filename)
 
-            image_info = get_image_info(image_name=img_filename)
+            image_info = pointcloud_episode.get_image_info(image_name=img_filename)
 
             if os.path.isfile(image_path):  # if image existing
-                add_photo_context(pcl_episodes_dataset=pcl_episodes_dataset,  # add photo context
-                                  pcl_name=pcl_filename,
-                                  image_path=image_path,
-                                  img_info=image_info)
+                pointcloud_episode.add_photo_context(pcl_episodes_dataset=pcl_episodes_dataset,  # add photo context
+                                                     pcl_name=pcl_filename,
+                                                     image_path=image_path,
+                                                     img_info=image_info)
 
             frame2pcl[frame_num] = pcl_filename  # updating mappings
 
-            if frame_num == 5:
-                break  # DEBUG
-
         process_annotations(current_seq, pcl_episodes_project, pcl_episodes_dataset)
         pointcloud_episode.save_frame_to_pcl_mapping(pcl_episodes_dataset, frame2pcl)  # save frame2pcl mapping
-
-
-# move to submodules
-def get_related_images_dir_path_by_dataset(pcl_episodes_dataset, pointcloud_name):
-    related_images_path = pcl_episodes_dataset.get_related_images_path(pointcloud_name)
-    os.makedirs(related_images_path, exist_ok=True)
-
-    return related_images_path
-
-
-def add_photo_context(pcl_episodes_dataset, pcl_name, image_path, img_info):
-    """
-    @TODO move to SDK
-    """
-    related_images_dir_path = get_related_images_dir_path_by_dataset(pcl_episodes_dataset, pcl_name)
-    os.makedirs(related_images_dir_path, exist_ok=True)
-
-    sly_path_img = os.path.join(related_images_dir_path, pcl_name.replace('.pcd', '.png'))
-
-    shutil.copy(src=image_path, dst=sly_path_img)  # copy image to project
-    if img_info is not None:
-        supervisely.json.dump_json_file(img_info, sly_path_img + '.json')  # add img_info to project
-
-
-def get_image_info(image_name, camera_num=0):
-    intrinsic_matrix = g.intrinsic_calibrations[f'P_rect_0{camera_num}'][:3, :3]  # now only for zero_cam
-    extrinsic_matrix = np.linalg.inv(g.cam2velo)[:3, :4]
-
-    return {
-        "name": image_name,
-        "meta": {
-            "deviceId": f'P_rect_0{camera_num}',
-            "sensorsData": {
-                "extrinsicMatrix": list(extrinsic_matrix.flatten().astype(float)),
-                "intrinsicMatrix": list(intrinsic_matrix.flatten().astype(float))
-            }
-        }
-    }
