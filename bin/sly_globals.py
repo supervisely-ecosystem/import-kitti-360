@@ -35,6 +35,8 @@ poses_path = os.path.join(kitti360_local_dir, 'data_poses/{}/')  # paste seq nam
 cam2world = None
 cam2velo = None
 
+intrinsic_calibrations = None
+
 
 
 

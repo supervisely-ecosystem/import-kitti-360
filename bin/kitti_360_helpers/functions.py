@@ -30,6 +30,9 @@ def download_raw_project():
 def load_static_transformations():
     g.cam2velo = kitti_360_helpers.get_cam_to_velodyne_rigid(os.path.join(g.calibrations_path, 'calib_cam_to_velo.txt'))
 
+    g.intrinsic_calibrations = \
+        kitti_360_helpers.get_perspective_intrinsic(os.path.join(g.calibrations_path, 'perspective.txt'))
+
 
 def get_kitti_360_data():
     download_raw_project()
@@ -37,11 +40,16 @@ def get_kitti_360_data():
 
 
 def world_to_velo_transformation(obj, frame_index):
-    rotate_z = Rotation.from_rotvec(np.pi * np.array([0, 0, 1])).as_matrix()
-    rotate_z = np.hstack((rotate_z, np.asarray([[0, 0, 0]]).T))
-    tr0 = np.vstack((rotate_z, [0, 0, 0, 1]))
+    # rotate_z = Rotation.from_rotvec(np.pi * np.array([0, 0, 1])).as_matrix()
+    # rotate_z = np.hstack((rotate_z, np.asarray([[0, 0, 0]]).T))
 
-    # tr1(local -> world)
+    # tr0(local -> fixed_coordinates_local)
+    tr0 = np.asarray([[0, -1, 0, 0],
+                      [1, 0, 0, 0],
+                      [0, 0, 1, 0],
+                      [0, 0, 0, 1]])
+
+    # tr0(fixed_coordinates_local -> world)
     tr1 = obj.transform
 
     # tr2(world -> cam)
@@ -90,4 +98,3 @@ def visualize(geometries):
     opt.background_color = np.asarray([0.5, 0.5, 0.5])
     viewer.run()
     viewer.destroy_window()
-

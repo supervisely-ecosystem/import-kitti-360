@@ -1,14 +1,20 @@
-# cam_0 to velo
 import os
 
 import numpy as np
 from tqdm import tqdm
 
-from kitti360scripts.devkits.commons.loadCalibration import loadCalibrationRigid, loadCalibrationCameraToPose
+from kitti360scripts.devkits.commons.loadCalibration import loadCalibrationRigid, loadCalibrationCameraToPose, \
+    loadPerspectiveIntrinsic
+
+import sly_globals as g
 
 
-def get_cam_to_velodyne_rigid(fileCameraToVelo):
-    return loadCalibrationRigid(fileCameraToVelo)
+def get_perspective_intrinsic(filepath):
+    return loadPerspectiveIntrinsic(filepath)
+
+
+def get_cam_to_velodyne_rigid(filepath):
+    return loadCalibrationRigid(filepath)
 
 
 def get_cam_to_world_rigid(file_path):
@@ -39,4 +45,6 @@ def get_cam_to_world_rigid(file_path):
     return cam2world
 
 
-
+if __name__ == '__main__':
+    intrinsic_filepath = os.path.join(g.calibrations_path, 'perspective.txt')
+    intrinsic_calibrations = get_perspective_intrinsic(intrinsic_filepath)['P_rect_00']
