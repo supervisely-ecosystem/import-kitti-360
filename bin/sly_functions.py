@@ -37,8 +37,8 @@ def frames_to_figures_dict(annotations_object, project_meta):
             pcobj = supervisely.PointcloudObject(project_meta.get_obj_class(obj.name))
             ann_objects.add(pcobj)
 
-            for frame_index in range(obj.start_frame, 5):  # DEBUG
-                # for frame_index in range(obj.start_frame, obj.end_frame):
+            # for frame_index in range(obj.start_frame, 5):
+            for frame_index in range(obj.start_frame, obj.end_frame):
                 geometry = kitti_360_helpers.convert_kitti_cuboid_to_supervisely_geometry(obj, frame_index)
                 frame2figures.setdefault(frame_index, []).append(supervisely.PointcloudFigure(pcobj, geometry,
                                                                                               frame_index=frame_index))
@@ -50,9 +50,12 @@ def convert_kitty_to_supervisely(annotations_object, project_meta):
 
     frames_list = []
 
-    for frame_index in frames2figures.keys():
+    for frame_index in range(0, list(frames2figures.keys())[-1] + 1):
         figures_on_frame = frames2figures.get(frame_index, [])
         frames_list.append(supervisely.Frame(frame_index, figures_on_frame))
+
+        if frame_index == 20:  # DEBUG
+            break
 
     frames_collection = supervisely.FrameCollection(frames_list)
     return supervisely.PointcloudEpisodeAnnotation(frames_count=len(frames_list),

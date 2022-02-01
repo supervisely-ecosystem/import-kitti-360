@@ -39,8 +39,8 @@ def get_cam_to_world_rigid(file_path):
         # (Tr(cam -> world))
         cam2world[frame_index] = current_rigid
 
-        if frame_index == 20:  # DEBUG
-            break
+        # if frame_index == 20:  # DEBUG
+        #     break
 
     return cam2world
 
