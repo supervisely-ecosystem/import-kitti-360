@@ -26,6 +26,7 @@ project_dir_path = os.path.join(my_app.data_dir, project_name)
 seq_dir_path = os.path.join(kitti360_local_dir, 'data_3d_raw')
 bins_dir_path = os.path.join(kitti360_local_dir, 'data_3d_raw/{}/velodyne_points/data/')  # paste seq name
 bboxes_path = os.path.join(kitti360_local_dir, 'data_3d_bboxes/train/')
+photocontext_path = os.path.join(kitti360_local_dir, 'data_2d_raw/{}/image_00/data_rect')  # paste seq name
 
 calibrations_path = os.path.join(kitti360_local_dir, 'calibration/')
 poses_path = os.path.join(kitti360_local_dir, 'data_poses/{}/')  # paste seq name

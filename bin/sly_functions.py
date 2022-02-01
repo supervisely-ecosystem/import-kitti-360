@@ -79,7 +79,7 @@ def process_annotations(seq_to_process, pcl_episodes_project, pcl_episodes_datas
         update_project_meta(pcl_episodes_project, project_meta)
 
     else:
-        supervisely.logger.info(f'Annotations for {seq_to_process} not found;')
+        supervisely.logger.info(f'Annotations for {seq_to_process} not found')
 
 
 def convert_kitti360_to_supervisely_pcl_episodes_project():
