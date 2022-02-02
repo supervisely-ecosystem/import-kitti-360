@@ -32,7 +32,7 @@ Application key points:
 
 # Usage
 
-1. Prepare folder in **KITTI-360 structure** ([**DOWNLOAD EXAMPLE HERE**](https://github.com/supervisely-ecosystem/import-kitti-360/releases/download/v0.0.1/Example_1.zip)).  
+1. Prepare folder in **KITTI-360 structure** ([**DOWNLOAD EXAMPLE HERE**](https://github.com/supervisely-ecosystem/import-kitti-360/releases/download/v0.0.1/Example_1.zip))  
 
 
 ```TEXT
