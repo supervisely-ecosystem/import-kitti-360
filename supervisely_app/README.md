@@ -69,9 +69,9 @@ Example_1
 2. Upload folder to Team Files
 
 # How to Run
-1. Add [Import KITTI-360](https://ecosystem.supervise.ly/apps/import-images-from-csv) to your team from Ecosystem.
+1. Add [Import KITTI-360](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/import-kitti-360/supervisely_app) to your team from Ecosystem.
 
-<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/import-images-from-csv" src="https://imgur.com/Cqe7fjv.png" width="450px" style='padding-bottom: 20px'/>  
+<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/import-kitti-360/supervisely_app" src="https://imgur.com/glw5PPT.png" width="350px" style='padding-bottom: 20px'/>  
 
 2. Run app from the context menu of the [prepared folder](#usage):
 
