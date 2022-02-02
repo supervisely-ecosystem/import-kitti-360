@@ -1,0 +1,4 @@
+git+https://github.com/autonomousvision/kitti360Scripts.git
+open3d==0.14.1
+supervisely==6.6.2
+transforms3d==0.3.1
