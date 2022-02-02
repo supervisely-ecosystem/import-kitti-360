@@ -7,24 +7,23 @@
 <p align="center">
   <a href="#Overview">Overview</a> •
   <a href="#Usage">Usage</a> •
-  <a href="#How-To-Run">How To Run</a> •
-  <a href="#Demo">Demo</a> •
-  <a href="#Screenshot">Screenshot</a>
-
+  <a href="#How-To-Run">How To Run</a>
 </p>
 
-[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/import-images-from-csv)
+https://supervisely-dev.deepsystems.io/ecosystem/apps/supervisely-ecosystem/import-kitti-360/supervisely_app
+
+[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/import-kitti-360/supervisely_app)
 [![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervise.ly/slack)
-![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/import-images-from-csv)
-[![views](https://app.supervise.ly/public/api/v3/ecosystem.counters?repo=supervisely-ecosystem/import-images-from-csv&counter=views&label=views)](https://supervise.ly)
-[![used by teams](https://app.supervise.ly/public/api/v3/ecosystem.counters?repo=supervisely-ecosystem/import-images-from-csv&counter=downloads&label=used%20by%20teams)](https://supervise.ly)
-[![runs](https://app.supervise.ly/public/api/v3/ecosystem.counters?repo=supervisely-ecosystem/import-images-from-csv&counter=runs&label=runs&123)](https://supervise.ly)
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/import-kitti-360/)
+[![views](https://app.supervise.ly/public/api/v3/ecosystem.counters?repo=supervisely-ecosystem/import-kitti-360/supervisely_app&counter=views&label=views)](https://supervise.ly)
+[![used by teams](https://app.supervise.ly/public/api/v3/ecosystem.counters?repo=supervisely-ecosystem/import-kitti-360/supervisely_app&counter=downloads&label=used%20by%20teams)](https://supervise.ly)
+[![runs](https://app.supervise.ly/public/api/v3/ecosystem.counters?repo=supervisely-ecosystem/import-kitti-360/supervisely_app&counter=runs&label=runs&123)](https://supervise.ly)
 
 </div>
 
 # Overview
 
-Application imports Supervisely Pointcloud Episodes using **.CSV file**
+Application imports Supervisely Pointcloud Episodes from KITTI-360 format
 
 Application key points:  
 - `Raw Velodyne Pointclouds` supported
@@ -33,7 +32,7 @@ Application key points:
 
 # Usage
 
-1. Prepare folder in KITTI-360 structure ([**DOWNLOAD EXAMPLE HERE**]())
+1. Prepare folder in KITTI-360 structure ([**DOWNLOAD LITE EXAMPLE HERE**]())
 
 ```
 Example_1
@@ -45,7 +44,7 @@ Example_1
 │   ├── image_03.yaml
 │   └── perspective.txt
 ├── data_2d_raw
-│ └── 2013_05_28_drive_0000_sync
+│ └── 2013_05_28_drive_0000_sync — name of sequence 
 │      └── image_00
 │           └── data_rect
 │               ├── 0000000000.png
@@ -53,16 +52,16 @@ Example_1
 │               ├── 0000000002.png
 ├── data_3d_bboxes
 │   └── train
-│       └── 2013_05_28_drive_0000_sync.xml
+│       └── 2013_05_28_drive_0000_sync.xml — name of sequence (.xml)
 ├── data_3d_raw
-│   └── 2013_05_28_drive_0000_sync
+│   └── 2013_05_28_drive_0000_sync — name of sequence
 │       └── velodyne_points
 │           └── data
 │               ├── 0000000000.bin
 │               ├── 0000000001.bin
 │               ├── 0000000002.bin
 └── data_poses
-    └── 2013_05_28_drive_0000_sync
+    └── 2013_05_28_drive_0000_sync — name of sequence
         ├── cam0_to_world.txt
         └── poses.txt
 ```
