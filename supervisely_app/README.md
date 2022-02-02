@@ -68,6 +68,8 @@ Example_1
 
 2. Upload folder to Team Files
 
+<img src="https://github.com/supervisely-ecosystem/import-kitti-360/releases/download/v0.0.4/drag-and-drop.gif?raw=true" style="width: 100%;"/>
+
 # How to Run
 1. Add [Import KITTI-360](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/import-kitti-360/supervisely_app) to your team from Ecosystem.
 
