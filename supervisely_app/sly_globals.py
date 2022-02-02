@@ -12,7 +12,7 @@ TASK_ID = int(os.environ["TASK_ID"])
 TEAM_ID = int(os.environ['context.teamId'])
 WORKSPACE_ID = int(os.environ['context.workspaceId'])
 
-kitti360_remote_dir = os.environ["modal.state.kittiPath"]
+kitti360_remote_dir = os.environ["modal.state.slyFolder"]
 kitti360_local_dir = os.path.join(my_app.data_dir, 'kitti360data_raw')
 
 project_name = os.path.basename(os.path.normpath(kitti360_remote_dir))
