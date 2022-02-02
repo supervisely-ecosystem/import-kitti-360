@@ -10,7 +10,6 @@
   <a href="#How-To-Run">How To Run</a>
 </p>
 
-https://supervisely-dev.deepsystems.io/ecosystem/apps/supervisely-ecosystem/import-kitti-360/supervisely_app
 
 [![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/import-kitti-360/supervisely_app)
 [![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervise.ly/slack)
@@ -34,7 +33,7 @@ Application key points:
 
 1. Prepare folder in KITTI-360 structure ([**DOWNLOAD LITE EXAMPLE HERE**]())
 
-```
+```text
 Example_1
 ├── calibration
 │   ├── calib_cam_to_pose.txt  
