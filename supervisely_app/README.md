@@ -33,7 +33,7 @@ Application key points:
 
 1. Prepare folder in KITTI-360 structure ([**DOWNLOAD LITE EXAMPLE HERE**]())
 
-```text
+```TEXT
 Example_1
 ├── calibration
 │   ├── calib_cam_to_pose.txt  
