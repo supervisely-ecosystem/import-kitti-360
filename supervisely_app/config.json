@@ -1,0 +1,19 @@
+{
+  "name": "Import KITTI-360",
+  "type": "app",
+  "categories": [
+    "import",
+    "pointcloud"
+  ],
+  "description": "Import PointCloud Episodes from KITTI-360 format",
+  "docker_image": "supervisely/base-py-sdk:6.6.2",
+  "main_script": "supervisely_app/main.py",
+  "task_location": "workspace_tasks",
+  "isolate": true,
+  "headless": true,
+  "icon": "https://i.imgur.com/UGS45Aw.png",
+  "icon_background": "#FFFFFF",
+  "context_menu": {
+    "target": ["files_folder"]
+  }
+}
