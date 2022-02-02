@@ -6,7 +6,7 @@ import supervisely
 my_app = supervisely.AppService()
 api: supervisely.Api = my_app.public_api
 
-shutil.rmtree(my_app.data_dir, ignore_errors=False)  # DEBUG
+# shutil.rmtree(my_app.data_dir, ignore_errors=True)  # DEBUG
 
 TASK_ID = int(os.environ["TASK_ID"])
 TEAM_ID = int(os.environ['context.teamId'])
