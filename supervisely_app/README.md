@@ -38,11 +38,7 @@ Application key points:
 ```TEXT
 Example_1
 ├── calibration
-│   ├── calib_cam_to_pose.txt  
 │   ├── calib_cam_to_velo.txt  
-│   ├── calib_sick_to_velo.txt
-│   ├── image_02.yaml
-│   ├── image_03.yaml
 │   └── perspective.txt
 ├── data_2d_raw
 │ └── 2013_05_28_drive_0000_sync — name of sequence 
@@ -63,8 +59,7 @@ Example_1
 │               ├── 0000000002.bin
 └── data_poses
     └── 2013_05_28_drive_0000_sync — name of sequence
-        ├── cam0_to_world.txt
-        └── poses.txt
+        └── cam0_to_world.txt
 ```
 
 2. Upload folder to Team Files
