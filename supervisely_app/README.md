@@ -1,5 +1,5 @@
 <div align="center" markdown>
-<img src="https://imgur.com/qeRLE3D.jpg"/>
+<img src="https://imgur.com/rj5eM40.jpg"/>
 
 
 # Import KITTI-360
@@ -31,7 +31,7 @@ Application key points:
 
 # Usage
 
-1. Prepare folder in KITTI-360 structure ([**DOWNLOAD LITE EXAMPLE HERE**]())
+1. Prepare folder in **KITTI-360 structure** ([**DOWNLOAD EXAMPLE HERE**](https://github.com/supervisely-ecosystem/import-kitti-360/releases/download/v0.0.1/Example_1.zip))
 
 ```TEXT
 Example_1
