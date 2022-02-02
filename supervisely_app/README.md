@@ -7,7 +7,8 @@
 <p align="center">
   <a href="#Overview">Overview</a> •
   <a href="#Usage">Usage</a> •
-  <a href="#How-To-Run">How To Run</a>
+  <a href="#How-To-Run">How To Run</a> •
+  <a href="#Acknowledgment">Acknowledgment</a> 
 </p>
 
 
@@ -78,4 +79,8 @@ Example_1
 2. Run app from the context menu of the [prepared folder](#usage):
 
 <img src="https://imgur.com/k7TAhxC.png" width="100%"/>
+
+# Acknowledgment
+
+This application interacts with the great work `KITTI-360: A large-scale dataset with 3D&2D annotations` ([webpage](http://www.cvlibs.net/datasets/kitti-360/index.php), [github](https://github.com/autonomousvision/kitti360Scripts)). ![GitHub Org's stars](https://img.shields.io/github/stars/autonomousvision/kitti360Scripts?style=social)
 
