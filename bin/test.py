@@ -23,5 +23,10 @@ import numpy as np
 # print()
 
 
-test = 'test_string'.split(';')
-print(test)
+# test = 'test_string'.split(';')
+# print(test)
+
+
+test_arr = [1, 2, 3]
+
+print()

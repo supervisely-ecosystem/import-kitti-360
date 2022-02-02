@@ -18,6 +18,9 @@ import datetime
 import locale
 
 # A point in a polygon
+import sly_progress
+import sly_globals as g
+
 Point = namedtuple('Point', ['x', 'y'])
 
 
@@ -211,14 +214,20 @@ class Annotation3D:
 
         self.num_bbox = 0
 
+        progress_cb = sly_progress.get_progress_cb(g.api, g.TASK_ID, f"Loading kitty annotations",
+                                                   total=len(root))
+
         for child in root:
             if child.find('transform') is None:
+                progress_cb(1)
                 continue
             obj = KITTI360Bbox3D()
             obj.parseBbox(child)
             globalId = local2global(obj.semanticId, obj.instanceId)
             self.objects[globalId][obj.timestamp] = obj
             self.num_bbox+=1
+            
+            progress_cb(1)
 
         globalIds = np.asarray(list(self.objects.keys()))
         semanticIds, instanceIds = global2local(globalIds)

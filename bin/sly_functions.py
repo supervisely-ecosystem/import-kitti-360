@@ -7,6 +7,7 @@ import numpy as np
 import kitti_360_helpers
 import pointcloud_episode
 import sly_globals as g
+import sly_progress
 import supervisely
 from supervisely.geometry.cuboid_3d import Cuboid3d
 from supervisely.pointcloud_annotation.pointcloud_object_collection import PointcloudObjectCollection
@@ -29,6 +30,9 @@ def frames_to_figures_dict(annotations_object, project_meta):
     frame2figures = {}
     ann_objects = set()
 
+    progress_cb = sly_progress.get_progress_cb(g.api, g.TASK_ID, f"Converting annotations",
+                                               total=len(annotations_object.objects.keys()))
+
     for globalId, v in annotations_object.objects.items():
         if len(v) > 0:
             first_object = list(v.values())[0]
@@ -49,6 +53,9 @@ def frames_to_figures_dict(annotations_object, project_meta):
                                                                                           frame_index)
                 frame2figures.setdefault(frame_index, []).append(supervisely.PointcloudFigure(pcobj, geometry,
                                                                                               frame_index=frame_index))
+
+            progress_cb(1)
+
     return frame2figures, ann_objects
 
 
@@ -57,9 +64,14 @@ def convert_kitty_to_supervisely(annotations_object, project_meta):
 
     frames_list = []
 
+    progress_cb = sly_progress.get_progress_cb(g.api, g.TASK_ID, f"Mapping annotations",
+                                               total=list(frames2figures.keys())[-1] + 1)
+
     for frame_index in range(0, list(frames2figures.keys())[-1] + 1):
         figures_on_frame = frames2figures.get(frame_index, [])
         frames_list.append(supervisely.Frame(frame_index, figures_on_frame))
+
+        progress_cb(1)
 
     frames_collection = supervisely.FrameCollection(frames_list)
     return supervisely.PointcloudEpisodeAnnotation(frames_count=len(frames_list),
@@ -108,6 +120,9 @@ def convert_kitti360_to_supervisely_pcl_episodes_project():
         bins_paths = sorted(glob.glob(os.path.join(g.bins_dir_path.format(current_seq), '*.bin')))  # pointclouds paths
         pcl_episodes_dataset = pcl_episodes_project.create_dataset(f'{current_seq}')
 
+        progress_cb = sly_progress.get_progress_cb(g.api, g.TASK_ID, f"Processing pointclouds",
+                                                   total=len(bins_paths))
+
         for frame_num, current_bin_path in enumerate(bins_paths, start=0):
             pcl_path, pcl_filename = pointcloud_episode.bin_to_pcl(current_bin_path)  # add pointcloud
             pcl_episodes_dataset.add_item_file(pcl_filename, pcl_path)
@@ -124,6 +139,8 @@ def convert_kitti360_to_supervisely_pcl_episodes_project():
                                                      img_info=image_info)
 
             frame2pcl[frame_num] = pcl_filename  # updating mappings
+
+            progress_cb(1)
 
         process_annotations(current_seq, pcl_episodes_project, pcl_episodes_dataset)
         pointcloud_episode.save_frame_to_pcl_mapping(pcl_episodes_dataset, frame2pcl)  # save frame2pcl mapping

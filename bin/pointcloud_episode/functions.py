@@ -84,8 +84,8 @@ def get_image_info(image_name, camera_num=0):
         "meta": {
             "deviceId": f'P_rect_0{camera_num}',
             "sensorsData": {
-                "extrinsicMatrix": list(extrinsic_matrix.flatten().astype(float)),
-                "intrinsicMatrix": list(intrinsic_matrix.flatten().astype(float))
+                "intrinsicMatrix": list(intrinsic_matrix.flatten().astype(float)),
+                "extrinsicMatrix": list(extrinsic_matrix.flatten().astype(float))
             }
         }
     }
