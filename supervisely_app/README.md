@@ -23,7 +23,9 @@
 
 # Overview
 
-Application imports Supervisely Pointcloud Episodes from KITTI-360 format.
+Application imports **Supervisely Pointcloud Episodes** from KITTI-360 format.
+
+<img src="https://github.com/supervisely-ecosystem/import-kitti-360/releases/download/v0.0.4/pointcloud-episodes.gif?raw=true" style="width: 100%;"/>
 
 Application key points:  
 - `3D Raw Velodyne Pointclouds` supported
