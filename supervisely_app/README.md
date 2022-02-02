@@ -26,7 +26,7 @@ https://supervisely-dev.deepsystems.io/ecosystem/apps/supervisely-ecosystem/impo
 Application imports Supervisely Pointcloud Episodes from KITTI-360 format
 
 Application key points:  
-- `Raw Velodyne Pointclouds` supported
+- `3D Raw Velodyne Pointclouds` supported
 - `3D BBoxes` supported
 - `2D Rectified Images from Perspective Camera (00)` supported
 
@@ -75,5 +75,5 @@ Example_1
 
 2. Run app from the context menu of the [prepared folder](#usage):
 
-<img src=".png" width="100%"/>
+<img src="https://imgur.com/k7TAhxC.png" width="100%"/>
 
