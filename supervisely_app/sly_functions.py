@@ -1,8 +1,5 @@
 import glob
 import os
-import shutil
-
-import numpy as np
 
 import kitti_360_helpers
 import pointcloud_episode
@@ -12,8 +9,6 @@ import supervisely
 from supervisely.geometry.cuboid_3d import Cuboid3d
 from supervisely.pointcloud_annotation.pointcloud_object_collection import PointcloudObjectCollection
 
-from kitti_360_helpers import get_kitti_360_data
-from pointcloud_episode import upload_pcl_episodes_project
 
 
 def get_project_meta(labels, geometry=Cuboid3d):

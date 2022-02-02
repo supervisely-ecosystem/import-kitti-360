@@ -1,11 +1,7 @@
 import os
 import shutil
 
-import kitti_360_helpers
-
-
 import supervisely
-
 
 my_app = supervisely.AppService()
 api: supervisely.Api = my_app.public_api
