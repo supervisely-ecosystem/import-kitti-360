@@ -22,8 +22,8 @@ def download_raw_project():
 
     print(g.kitti360_remote_dir)
     print(g.kitti360_local_dir)
-    # print(f"File exists: {g.api.file.exists(g.kitti360_remote_dir)}")
-    print(f"Dir exists: {g.api.file.dir_exists(g.kitti360_remote_dir)}")
+    print(f"File exists: {g.api.file.exists(g.TEAM_ID, g.kitti360_remote_dir)}")
+    print(f"Dir exists: {g.api.file.dir_exists(g.TEAM_ID, g.kitti360_remote_dir)}")
     print(f"Isdir: {os.path.isdir(g.kitti360_local_dir)}")
     if not os.path.isdir(g.kitti360_local_dir):
         g.api.file.download_directory(g.TEAM_ID,
