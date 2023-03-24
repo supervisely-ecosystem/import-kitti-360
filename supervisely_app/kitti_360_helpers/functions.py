@@ -27,7 +27,7 @@ def download_raw_project():
     print(f"Isdir: {os.path.isdir(g.kitti360_local_dir)}")
     if not os.path.isdir(g.kitti360_local_dir):
         g.api.file.download_directory(g.TEAM_ID,
-                                      remote_path=g.kitti360_remote_dir,
+                                      remote_path="{g.kitti360_remote_dir}/",
                                       local_save_path=g.kitti360_local_dir,
                                       progress_cb=progress_cb)
 
