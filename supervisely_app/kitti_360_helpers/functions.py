@@ -20,7 +20,7 @@ def download_raw_project():
     progress_cb = sly_progress.get_progress_cb(g.api, g.TASK_ID, f"Downloading {g.kitti360_remote_dir}",
                                                dir_size_in_bytes, is_size=True)
 
-    remote_dir = "{g.kitti360_remote_dir}/"
+    remote_dir = f"{g.kitti360_remote_dir}/"
     print(remote_dir)
     print(g.kitti360_local_dir)
     print(f"File exists: {g.api.file.exists(g.TEAM_ID, remote_dir)}")
