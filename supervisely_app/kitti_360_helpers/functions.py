@@ -20,6 +20,8 @@ def download_raw_project():
     progress_cb = sly_progress.get_progress_cb(g.api, g.TASK_ID, f"Downloading {g.kitti360_remote_dir}",
                                                dir_size_in_bytes, is_size=True)
 
+    if not g.kitti360_remote_dir.endswith(os.path.sep):
+        g.kitti360_remote_dir += os.path.sep
     if not os.path.isdir(g.kitti360_local_dir):
         g.api.file.download_directory(g.TEAM_ID,
                                       remote_path=g.kitti360_remote_dir,
