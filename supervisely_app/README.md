@@ -1,5 +1,5 @@
 <div align="center" markdown>
-<img src="https://imgur.com/rj5eM40.jpg"/>
+<img src="media/poster.jpeg"/>
 
 
 # Import KITTI-360
@@ -70,11 +70,11 @@ Example_1
 # How to Run
 1. Add [Import KITTI-360](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/import-kitti-360/supervisely_app) to your team from Ecosystem.
 
-<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/import-kitti-360/supervisely_app" src="https://imgur.com/WvE30tf.png" width="350px" style='padding-bottom: 20px'/>  
+<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/import-kitti-360/supervisely_app" src="media/htr1.png" width="350px" style='padding-bottom: 20px'/>  
 
 2. Run app from the context menu of the [prepared folder](#usage):
 
-<img src="https://imgur.com/XlQWbIu.png" width="100%"/>
+<img src="media/htr2.png" width="100%"/>
 
 # Acknowledgment
 
