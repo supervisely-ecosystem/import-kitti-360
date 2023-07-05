@@ -11,7 +11,7 @@
   "task_location": "workspace_tasks",
   "isolate": true,
   "headless": true,
-  "icon": "https://imgur.com/aOcEQGm.png",
+  "icon": "media/icon.png",
   "icon_cover": false,
   "icon_background": "#FFFFFF",
   "context_menu": {
@@ -19,5 +19,5 @@
       "files_folder"
     ]
   },
-  "poster": "https://imgur.com/rj5eM40.jpg"
+  "poster": "supervisely_app/media/poster.jpeg"
 }
