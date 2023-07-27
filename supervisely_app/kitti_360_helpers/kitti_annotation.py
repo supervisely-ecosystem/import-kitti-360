@@ -39,7 +39,7 @@ def global2local(globalId):
     semanticId = globalId // MAX_N
     instanceId = globalId % MAX_N
     if isinstance(globalId, np.ndarray):
-        return semanticId.astype(np.int), instanceId.astype(np.int)
+        return semanticId.astype(int), instanceId.astype(int)
     else:
         return int(semanticId), int(instanceId)
 
