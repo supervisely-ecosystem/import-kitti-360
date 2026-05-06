@@ -1,6 +1,7 @@
 {
   "name": "Import KITTI-360",
   "type": "app",
+  "instance_version": "6.15.60",
   "categories": [
     "import",
     "pointclouds"
