@@ -1,13 +1,13 @@
 {
   "name": "Import KITTI-360",
   "type": "app",
-  "instance_version": "6.15.60",
+  "instance_version": "6.16.19",
   "categories": [
     "import",
     "pointclouds"
   ],
   "description": "Import Pointcloud Episodes from KITTI-360 format",
-  "docker_image": "supervisely/import-export:6.73.564",
+  "docker_image": "supervisely/import-export:6.73.577",
   "main_script": "supervisely_app/main.py",
   "task_location": "workspace_tasks",
   "isolate": true,
