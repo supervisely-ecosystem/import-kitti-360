@@ -6,7 +6,7 @@
     "import",
     "pointclouds"
   ],
-  "description": "Import Pointcloud Episodes from KITTI-360 format",
+  "description": "Import Point Cloud Episodes from KITTI-360 format",
   "docker_image": "supervisely/import-export:6.73.577",
   "main_script": "supervisely_app/main.py",
   "task_location": "workspace_tasks",
