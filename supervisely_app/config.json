@@ -4,7 +4,8 @@
   "instance_version": "6.16.19",
   "categories": [
     "import",
-    "pointclouds"
+    "pointclouds",
+    "episodes"
   ],
   "description": "Import Point Cloud Episodes from KITTI-360 format",
   "docker_image": "supervisely/import-export:6.73.577",
